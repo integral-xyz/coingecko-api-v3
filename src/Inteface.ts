@@ -519,7 +519,8 @@ export type GlobalDefiResponse = ResponseWithData<GlobalDefiData>;
 
 export interface Options {
   timeout?: number,
-  autoRetry?: boolean
+  autoRetry?: boolean,
+  apiKey?: string,
 }
 
 export interface HttpResponse<T> {
