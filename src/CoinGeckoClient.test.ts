@@ -9,6 +9,12 @@ describe('CoinGeckoClient test', () => {
     expect(ping).toEqual({ gecko_says: '(V3) To the Moon!' });
   });
 
+  it('ping for pro API should also be successful', async () => {
+    const proClient = new CoinGeckoClient({ apiKey: 'xxx' });
+    const ping: any = (await proClient.ping());
+    expect(ping.status.error_message).toEqual('API Key Missing');
+  });
+
   it('/search/trending should successful', async () => {
     const trending = await client.trending();
     expect(trending.coins?.length).toBeGreaterThan(1);

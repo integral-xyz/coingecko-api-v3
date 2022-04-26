@@ -33,6 +33,8 @@ import {
 export class CoinGeckoClient {
   apiV3Url = 'https://api.coingecko.com/api/v3'
 
+  apiV3UrlPro = 'http://pro-api.coingecko.com/api/v3'
+
   options: Options = {
     timeout: 30000,
     autoRetry: true,
@@ -70,6 +72,14 @@ export class CoinGeckoClient {
       },
       timeout: this.options.timeout, // in ms
     };
+
+    if (this.options.apiKey) {
+      options.headers = {
+        ...options.headers,
+        x_cg_pro_api_key: this.options.apiKey,
+      } as any;
+    }
+
     const parseJson = (input: string) => {
       try {
         return JSON.parse(input);
@@ -122,7 +132,8 @@ export class CoinGeckoClient {
    */
   private async makeRequest<T>(action: API_ROUTES, params: { [key: string]: any } = {}): Promise<T> {
     const qs = Object.entries(params).map(([key, value]) => `${key}=${value}`).join('&');
-    const requestUrl = `${this.apiV3Url + this.withPathParams(action, params)}?${qs}`;
+    const baseUrl = this.options.apiKey ? this.apiV3UrlPro : this.apiV3Url;
+    const requestUrl = `${baseUrl + this.withPathParams(action, params)}?${qs}`;
     const res = await this.httpGet<T>(requestUrl);// await this.http.get<T>(requestUrl);
     if (res.statusCode === 429 && this.options.autoRetry) {
       await new Promise((r) => setTimeout(r, 2000));
