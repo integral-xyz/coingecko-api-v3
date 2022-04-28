@@ -12,7 +12,6 @@
     "doc-gen": "rm -rf ./dist && typedoc --out ./docs src/",
     "prepublish": "npm run build",
     "publish-doc": "npm run doc-gen &&  gh-pages -d ./docs",
-    "prepare": "husky install",
     "release": "standard-version --dry-run"
   },
   "repository": {
