@@ -25,8 +25,8 @@ class CoinGeckoClient {
      * @param options the options passed for client library, at the moment only timeout are support
      */
     constructor(options) {
-        this.apiV3Url = 'https://api.coingecko.com/api/v3';
-        this.apiV3UrlPro = 'http://pro-api.coingecko.com/api/v3';
+        this.apiV3Url = "https://api.coingecko.com/api/v3";
+        this.apiV3UrlPro = "http://pro-api.coingecko.com/api/v3";
         this.options = {
             timeout: 30000,
             autoRetry: true,
@@ -48,18 +48,19 @@ class CoinGeckoClient {
     httpGet(url) {
         return __awaiter(this, void 0, void 0, function* () {
             const { host, pathname, search } = new URL(url);
+            const apiKey = this.options.apiKey;
+            const searchWithKey = apiKey
+                ? search + `${search + search ? "&" : "?"}x_cg_pro_api_key=${apiKey}`
+                : search;
             const options = {
                 host,
-                path: pathname + search,
-                method: 'GET',
+                path: pathname + searchWithKey,
+                method: "GET",
                 headers: {
-                    'Content-Type': 'application/json',
+                    "Content-Type": "application/json",
                 },
                 timeout: this.options.timeout, // in ms
             };
-            if (this.options.apiKey) {
-                options.headers = Object.assign(Object.assign({}, options.headers), { x_cg_pro_api_key: this.options.apiKey });
-            }
             const parseJson = (input) => {
                 try {
                     return JSON.parse(input);
@@ -74,15 +75,15 @@ class CoinGeckoClient {
                         resolve({
                             statusCode: res.statusCode,
                             data: {
-                                error: 'HTTP 429 - Too many request',
+                                error: "HTTP 429 - Too many request",
                             },
                             headers: res.headers,
                         });
                         // reject(new Error(`HTTP status code ${res.statusCode}`));
                     }
                     const body = [];
-                    res.on('data', (chunk) => body.push(chunk));
-                    res.on('end', () => {
+                    res.on("data", (chunk) => body.push(chunk));
+                    res.on("end", () => {
                         const resString = Buffer.concat(body).toString();
                         resolve({
                             statusCode: res.statusCode,
@@ -91,10 +92,10 @@ class CoinGeckoClient {
                         });
                     });
                 });
-                req.on('error', (err) => {
+                req.on("error", (err) => {
                     reject(err);
                 });
-                req.on('timeout', () => {
+                req.on("timeout", () => {
                     req.destroy();
                     reject(new Error(`HTTP Request timeout after ${this.options.timeout}`));
                 });
@@ -110,13 +111,15 @@ class CoinGeckoClient {
      */
     makeRequest(action, params = {}) {
         return __awaiter(this, void 0, void 0, function* () {
-            const qs = Object.entries(params).map(([key, value]) => `${key}=${value}`).join('&');
+            const qs = Object.entries(params)
+                .map(([key, value]) => `${key}=${value}`)
+                .join("&");
             const baseUrl = this.options.apiKey ? this.apiV3UrlPro : this.apiV3Url;
             const requestUrl = `${baseUrl + this.withPathParams(action, params)}?${qs}`;
             const res = yield this.httpGet(requestUrl); // await this.http.get<T>(requestUrl);
             if (res.statusCode === 429 && this.options.autoRetry) {
                 yield new Promise((r) => setTimeout(r, 2000));
-                return yield this.makeRequest(action, params);
+                return (yield this.makeRequest(action, params));
             }
             return res.data;
         });
@@ -319,156 +322,156 @@ class CoinGeckoClient {
         });
     }
     /**
-    * Get current price of tokens (using contract addresses) for a given platform in any other currency that you need.
-    * @param input.id The id of the platform issuing tokens (Only ethereum is supported for now)
-    * @param input.contract_addresses The contract address of tokens, comma separated
-    * @param input.vs_currencies vs_currency of coins, comma-separated if querying more than 1 vs_currency. *refers to simple/supported_vs_currencies
-    * @returns The dictionary of price pair with details
-    * * Example output
-    * ```json
-    * {
-    *    "0x8207c1ffc5b6804f6024322ccf34f29c3541ae26": {
-    *      "btc": 0.00003754,
-    *      "btc_market_cap": 7914.297728099776,
-    *      "btc_24h_vol": 2397.477480037078,
-    *      "btc_24h_change": 3.7958858800037834,
-    *      "eth": 0.0009474,
-    *      "eth_market_cap": 199730.22336519035,
-    *      "eth_24h_vol": 60504.258122696505,
-    *      "eth_24h_change": 2.8068351977135007,
-    *      "last_updated_at": 1618664199
-    *   }
-    *}
-    *```
-    * @category Simple
-    */
+     * Get current price of tokens (using contract addresses) for a given platform in any other currency that you need.
+     * @param input.id The id of the platform issuing tokens (Only ethereum is supported for now)
+     * @param input.contract_addresses The contract address of tokens, comma separated
+     * @param input.vs_currencies vs_currency of coins, comma-separated if querying more than 1 vs_currency. *refers to simple/supported_vs_currencies
+     * @returns The dictionary of price pair with details
+     * * Example output
+     * ```json
+     * {
+     *    "0x8207c1ffc5b6804f6024322ccf34f29c3541ae26": {
+     *      "btc": 0.00003754,
+     *      "btc_market_cap": 7914.297728099776,
+     *      "btc_24h_vol": 2397.477480037078,
+     *      "btc_24h_change": 3.7958858800037834,
+     *      "eth": 0.0009474,
+     *      "eth_market_cap": 199730.22336519035,
+     *      "eth_24h_vol": 60504.258122696505,
+     *      "eth_24h_change": 2.8068351977135007,
+     *      "last_updated_at": 1618664199
+     *   }
+     *}
+     *```
+     * @category Simple
+     */
     simpleTokenPrice(input) {
         return __awaiter(this, void 0, void 0, function* () {
             return this.makeRequest(Enum_1.API_ROUTES.SIMPLE_TOKEN_PRICE, input);
         });
     }
     /**
-    * Get list of supported_vs_currencies.
-    * @returns list of supported_vs_currencies
-    * @category Simple
-    */
+     * Get list of supported_vs_currencies.
+     * @returns list of supported_vs_currencies
+     * @category Simple
+     */
     simpleSupportedCurrencies() {
         return __awaiter(this, void 0, void 0, function* () {
             return this.makeRequest(Enum_1.API_ROUTES.SIMPLE_SUPPORTED_CURRENCIES);
         });
     }
     /**
-    * Get historical market data include price, market cap, and 24h volume (granularity auto) from a contract address
-    * @see https://www.coingecko.com/api/documentations/v3#/contract/get_coins__id__contract__contract_address_
-    * @returns current data for a coin
-    * @param input.id Asset platform (only ethereum is supported at this moment)
-    * @param input.contract_address Token’s contract address
-    * @category Contract
-    * @returns {CoinFullInfo}
-    */
+     * Get historical market data include price, market cap, and 24h volume (granularity auto) from a contract address
+     * @see https://www.coingecko.com/api/documentations/v3#/contract/get_coins__id__contract__contract_address_
+     * @returns current data for a coin
+     * @param input.id Asset platform (only ethereum is supported at this moment)
+     * @param input.contract_address Token’s contract address
+     * @category Contract
+     * @returns {CoinFullInfo}
+     */
     contract(input) {
         return __awaiter(this, void 0, void 0, function* () {
             return this.makeRequest(Enum_1.API_ROUTES.CONTRACT, input);
         });
     }
     /**
-    * Get historical market data include price, market cap, and 24h volume (granularity auto)
-    * @see https://www.coingecko.com/api/documentations/v3#/contract/get_coins__id__contract__contract_address__market_chart_
-    * @returns current data for a coin
-    * @param input.id Asset platform (only ethereum is supported at this moment)
-    * @param input.contract_address Token’s contract address
-    * @param input.vs_currency The target currency of market data (usd, eur, jpy, etc.)
-    * @param input.days Data up to number of days ago (eg. 1,14,30,max)
-    * @category Contract
-    * @returns {CoinMarketChartResponse}
-    */
+     * Get historical market data include price, market cap, and 24h volume (granularity auto)
+     * @see https://www.coingecko.com/api/documentations/v3#/contract/get_coins__id__contract__contract_address__market_chart_
+     * @returns current data for a coin
+     * @param input.id Asset platform (only ethereum is supported at this moment)
+     * @param input.contract_address Token’s contract address
+     * @param input.vs_currency The target currency of market data (usd, eur, jpy, etc.)
+     * @param input.days Data up to number of days ago (eg. 1,14,30,max)
+     * @category Contract
+     * @returns {CoinMarketChartResponse}
+     */
     contractMarketChart(input) {
         return __awaiter(this, void 0, void 0, function* () {
             return this.makeRequest(Enum_1.API_ROUTES.CONTRACT_MARKET_CHART, input);
         });
     }
     /**
-    * Get historical market data include price, market cap, and 24h volume within a range of timestamp (granularity auto) from a contract address
-    * @see https://www.coingecko.com/api/documentations/v3#/contract/get_coins__id__contract__contract_address__market_chart_range
-    * @returns current data for a coin
-    * @param input.id Asset platform (only ethereum is supported at this moment)
-    * @param input.contract_address Token’s contract address
-    * @param input.vs_currency The target currency of market data (usd, eur, jpy, etc.)
-    * @param input.from From date in UNIX Timestamp (eg. 1392577232)
-    * @param input.to From date in UNIX Timestamp (eg. 1618716149)
-    * @category Contract
-    * @returns {CoinMarketChartResponse} Get historical market data include price, market cap, and 24h volume
-    */
+     * Get historical market data include price, market cap, and 24h volume within a range of timestamp (granularity auto) from a contract address
+     * @see https://www.coingecko.com/api/documentations/v3#/contract/get_coins__id__contract__contract_address__market_chart_range
+     * @returns current data for a coin
+     * @param input.id Asset platform (only ethereum is supported at this moment)
+     * @param input.contract_address Token’s contract address
+     * @param input.vs_currency The target currency of market data (usd, eur, jpy, etc.)
+     * @param input.from From date in UNIX Timestamp (eg. 1392577232)
+     * @param input.to From date in UNIX Timestamp (eg. 1618716149)
+     * @category Contract
+     * @returns {CoinMarketChartResponse} Get historical market data include price, market cap, and 24h volume
+     */
     contractMarketChartRange(input) {
         return __awaiter(this, void 0, void 0, function* () {
             return this.makeRequest(Enum_1.API_ROUTES.CONTRACT_MARKET_CHART_RANGE, input);
         });
     }
     /**
-      * List all exchanges
-      * @see https://www.coingecko.com/api/documentations/v3#/exchanges_(beta)/get_exchanges
-      * @returns List all exchanges
-      * @param input.per_page Total results per page (valid values: 1…250)
-      * @param input.page Page through results
-      * @category Exchange
-      * @returns {CoinMarketChartResponse} Get historical market data include price, market cap, and 24h volume
-      */
+     * List all exchanges
+     * @see https://www.coingecko.com/api/documentations/v3#/exchanges_(beta)/get_exchanges
+     * @returns List all exchanges
+     * @param input.per_page Total results per page (valid values: 1…250)
+     * @param input.page Page through results
+     * @category Exchange
+     * @returns {CoinMarketChartResponse} Get historical market data include price, market cap, and 24h volume
+     */
     exchanges(input) {
         return __awaiter(this, void 0, void 0, function* () {
             return this.makeRequest(Enum_1.API_ROUTES.EXCHANGES, input);
         });
     }
     /**
-      * List all supported markets id and name (no pagination required)
-      * @see https://www.coingecko.com/api/documentations/v3#/exchanges_(beta)/get_exchanges_list
-      * @returns Use this to obtain all the markets’ id in order to make API calls
-      * @category Exchange
-      * @returns {NameIdPair[]} Get historical market data include price, market cap, and 24h volume
-      */
+     * List all supported markets id and name (no pagination required)
+     * @see https://www.coingecko.com/api/documentations/v3#/exchanges_(beta)/get_exchanges_list
+     * @returns Use this to obtain all the markets’ id in order to make API calls
+     * @category Exchange
+     * @returns {NameIdPair[]} Get historical market data include price, market cap, and 24h volume
+     */
     exchangeList() {
         return __awaiter(this, void 0, void 0, function* () {
             return this.makeRequest(Enum_1.API_ROUTES.EXCHANGE_LIST);
         });
     }
     /**
-    * List all supported markets id and name (no pagination required)
-    * @see https://www.coingecko.com/api/documentations/v3#/exchanges_(beta)/get_exchanges__id_
-    * @param id the exchange id (can be obtained from /exchanges/list) eg. binance
-    * @returns Use this to obtain all the markets’ id in order to make API calls
-    * ```
-    * IMPORTANT:
-    * Ticker object is limited to 100 items, to get more tickers, use /exchanges/{id}/tickers
-    * Ticker is_stale is true when ticker that has not been updated/unchanged from the exchange for a while.
-    * Ticker is_anomaly is true if ticker’s price is outliered by our system.
-    * You are responsible for managing how you want to display these information (e.g. footnote, different background, change opacity, hide)
-    * ```
-    * @category Exchange
-    * @returns {ExchangeId} Get exchange volume in BTC and top 100 tickers only
-    */
+     * List all supported markets id and name (no pagination required)
+     * @see https://www.coingecko.com/api/documentations/v3#/exchanges_(beta)/get_exchanges__id_
+     * @param id the exchange id (can be obtained from /exchanges/list) eg. binance
+     * @returns Use this to obtain all the markets’ id in order to make API calls
+     * ```
+     * IMPORTANT:
+     * Ticker object is limited to 100 items, to get more tickers, use /exchanges/{id}/tickers
+     * Ticker is_stale is true when ticker that has not been updated/unchanged from the exchange for a while.
+     * Ticker is_anomaly is true if ticker’s price is outliered by our system.
+     * You are responsible for managing how you want to display these information (e.g. footnote, different background, change opacity, hide)
+     * ```
+     * @category Exchange
+     * @returns {ExchangeId} Get exchange volume in BTC and top 100 tickers only
+     */
     exchangeId(id) {
         return __awaiter(this, void 0, void 0, function* () {
             return this.makeRequest(Enum_1.API_ROUTES.EXCHANGE_ID, { id });
         });
     }
     /**
-      * Get exchange tickers (paginated, 100 tickers per page)
-      * @see https://www.coingecko.com/api/documentations/v3#/exchanges_(beta)/get_exchanges__id__tickers
-      * @param input.id pass the exchange id (can be obtained from /exchanges/list) eg. binance
-      * @param input.coin_ids filter tickers by coin_ids (ref: v3/coins/list)
-      * @param input.include_exchange_logo flag to show exchange_logo
-      * @param input.page Page through results
-      * @param input.depth flag to show 2% orderbook depth i.e., cost_to_move_up_usd and cost_to_move_down_usd
-      * @returns Use this to obtain all the markets’ id in order to make API calls
-      * ```
-      * IMPORTANT:
-      * Ticker object is limited to 100 items, to get more tickers, use /exchanges/{id}/tickers
-      * Ticker is_stale is true when ticker that has not been updated/unchanged from the exchange for a while.
-      * Ticker is_anomaly is true if ticker’s price is outliered by our system.
-      * You are responsible for managing how you want to display these information (e.g. footnote, different background, change opacity, hide)
-      * ```
-      * @category Exchange
-      * @returns {ExchangeIdTickerResponse} Get exchange volume in BTC and top 100 tickers only
-      */
+     * Get exchange tickers (paginated, 100 tickers per page)
+     * @see https://www.coingecko.com/api/documentations/v3#/exchanges_(beta)/get_exchanges__id__tickers
+     * @param input.id pass the exchange id (can be obtained from /exchanges/list) eg. binance
+     * @param input.coin_ids filter tickers by coin_ids (ref: v3/coins/list)
+     * @param input.include_exchange_logo flag to show exchange_logo
+     * @param input.page Page through results
+     * @param input.depth flag to show 2% orderbook depth i.e., cost_to_move_up_usd and cost_to_move_down_usd
+     * @returns Use this to obtain all the markets’ id in order to make API calls
+     * ```
+     * IMPORTANT:
+     * Ticker object is limited to 100 items, to get more tickers, use /exchanges/{id}/tickers
+     * Ticker is_stale is true when ticker that has not been updated/unchanged from the exchange for a while.
+     * Ticker is_anomaly is true if ticker’s price is outliered by our system.
+     * You are responsible for managing how you want to display these information (e.g. footnote, different background, change opacity, hide)
+     * ```
+     * @category Exchange
+     * @returns {ExchangeIdTickerResponse} Get exchange volume in BTC and top 100 tickers only
+     */
     exchangeIdTickers(input) {
         return __awaiter(this, void 0, void 0, function* () {
             return this.makeRequest(Enum_1.API_ROUTES.EXCHANGE_ID_TICKER, input);
@@ -564,61 +567,61 @@ class CoinGeckoClient {
         });
     }
     /**
-    * list market indexes id and name
-    * @see https://www.coingecko.com/api/documentations/v3#/indexes_(beta)/get_indexes_list
-    * @category Indexes
-    * @returns {NameIdPair[]}
-    */
+     * list market indexes id and name
+     * @see https://www.coingecko.com/api/documentations/v3#/indexes_(beta)/get_indexes_list
+     * @category Indexes
+     * @returns {NameIdPair[]}
+     */
     indexesList() {
         return __awaiter(this, void 0, void 0, function* () {
             return this.makeRequest(Enum_1.API_ROUTES.INDEXES_LIST);
         });
     }
     /**
-    * List all derivative tickers
-    * @see https://www.coingecko.com/api/documentations/v3#/derivatives_(beta)/get_derivatives
-    * @param input.include_tickers 'all’, ‘unexpired’] - expired to show unexpired tickers, all to list all tickers, defaults to unexpired
-    * @category Derivatives
-    * @returns {Derivative[]}
-    */
+     * List all derivative tickers
+     * @see https://www.coingecko.com/api/documentations/v3#/derivatives_(beta)/get_derivatives
+     * @param input.include_tickers 'all’, ‘unexpired’] - expired to show unexpired tickers, all to list all tickers, defaults to unexpired
+     * @category Derivatives
+     * @returns {Derivative[]}
+     */
     derivatives(input) {
         return __awaiter(this, void 0, void 0, function* () {
             return this.makeRequest(Enum_1.API_ROUTES.DERIVATIVES, input);
         });
     }
     /**
-    * List all derivative tickers
-    * @see https://www.coingecko.com/api/documentations/v3#/derivatives_(beta)/get_derivatives_exchanges
-    * @param input.order order results using following params name_asc，name_desc，open_interest_btc_asc，open_interest_btc_desc，trade_volume_24h_btc_asc，trade_volume_24h_btc_desc
-    * @param input.page Page through results
-    * @param input.per_page  Total results per page
-    * @category Derivatives
-    * @returns {DerivativeExchange[]}
-    */
+     * List all derivative tickers
+     * @see https://www.coingecko.com/api/documentations/v3#/derivatives_(beta)/get_derivatives_exchanges
+     * @param input.order order results using following params name_asc，name_desc，open_interest_btc_asc，open_interest_btc_desc，trade_volume_24h_btc_asc，trade_volume_24h_btc_desc
+     * @param input.page Page through results
+     * @param input.per_page  Total results per page
+     * @category Derivatives
+     * @returns {DerivativeExchange[]}
+     */
     derivativesExchanges(input) {
         return __awaiter(this, void 0, void 0, function* () {
             return this.makeRequest(Enum_1.API_ROUTES.DERIVATIVES_EXCHANGES, input);
         });
     }
     /**
-    * show derivative exchange data
-    * @see https://www.coingecko.com/api/documentations/v3#/derivatives_(beta)/get_derivatives_exchanges__id_
-    * @param input.id pass the exchange id (can be obtained from derivatives/exchanges/list) eg. bitmex
-    * @param input.include_tickers ['all’, ‘unexpired’] - expired to show unexpired tickers, all to list all tickers, leave blank to omit tickers data in response
-    * @category Derivatives
-    * @returns {DerivativeExchange}
-    */
+     * show derivative exchange data
+     * @see https://www.coingecko.com/api/documentations/v3#/derivatives_(beta)/get_derivatives_exchanges__id_
+     * @param input.id pass the exchange id (can be obtained from derivatives/exchanges/list) eg. bitmex
+     * @param input.include_tickers ['all’, ‘unexpired’] - expired to show unexpired tickers, all to list all tickers, leave blank to omit tickers data in response
+     * @category Derivatives
+     * @returns {DerivativeExchange}
+     */
     derivativesExchangesId(input) {
         return __awaiter(this, void 0, void 0, function* () {
             return this.makeRequest(Enum_1.API_ROUTES.DERIVATIVES_EXCHANGES_ID, input);
         });
     }
     /**
-    * List all derivative exchanges name and identifier
-    * @see https://www.coingecko.com/api/documentations/v3#/derivatives_(beta)/get_derivatives_exchanges_list
-    * @category Derivatives
-    * @returns {NameIdPair[]}
-    */
+     * List all derivative exchanges name and identifier
+     * @see https://www.coingecko.com/api/documentations/v3#/derivatives_(beta)/get_derivatives_exchanges_list
+     * @category Derivatives
+     * @returns {NameIdPair[]}
+     */
     derivativesExchangesList() {
         return __awaiter(this, void 0, void 0, function* () {
             return this.makeRequest(Enum_1.API_ROUTES.DERIVATIVES_EXCHANGES_LIST);
@@ -685,33 +688,33 @@ class CoinGeckoClient {
     //   return this.makeRequest<EventCountryResponse>(API_ROUTES.EVENTS_TYPES);
     // }
     /**
-    * Get BTC-to-Currency exchange rates
-    * @see https://www.coingecko.com/api/documentations/v3#/exchange_rates/get_exchange_rates
-    * @category Exchange Rates
-    * @returns {ExchangeRatesResponse}
-    */
+     * Get BTC-to-Currency exchange rates
+     * @see https://www.coingecko.com/api/documentations/v3#/exchange_rates/get_exchange_rates
+     * @category Exchange Rates
+     * @returns {ExchangeRatesResponse}
+     */
     exchangeRates() {
         return __awaiter(this, void 0, void 0, function* () {
             return this.makeRequest(Enum_1.API_ROUTES.EXCHANGE_RATES);
         });
     }
     /**
-    * Get cryptocurrency global data
-    * @see https://www.coingecko.com/api/documentations/v3#/global/get_global
-    * @category Global
-    * @returns {GlobalResponse} Get global data - total_volume, total_market_cap, ongoing icos etc
-    */
+     * Get cryptocurrency global data
+     * @see https://www.coingecko.com/api/documentations/v3#/global/get_global
+     * @category Global
+     * @returns {GlobalResponse} Get global data - total_volume, total_market_cap, ongoing icos etc
+     */
     global() {
         return __awaiter(this, void 0, void 0, function* () {
             return this.makeRequest(Enum_1.API_ROUTES.GLOBAL);
         });
     }
     /**
-    * Get cryptocurrency global decentralized finance(defi) data
-    * @see https://www.coingecko.com/api/documentations/v3#/global/get_global
-    * @category Global
-    * @returns {GlobalDefiResponse} Get Top 100 Cryptocurrency Global Eecentralized Finance(defi) data
-    */
+     * Get cryptocurrency global decentralized finance(defi) data
+     * @see https://www.coingecko.com/api/documentations/v3#/global/get_global
+     * @category Global
+     * @returns {GlobalDefiResponse} Get Top 100 Cryptocurrency Global Eecentralized Finance(defi) data
+     */
     globalDefi() {
         return __awaiter(this, void 0, void 0, function* () {
             return this.makeRequest(Enum_1.API_ROUTES.GLOBAL_DEFI);
